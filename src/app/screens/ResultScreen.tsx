@@ -13,6 +13,9 @@ export function ResultScreen() {
   const mode = searchParams.get("mode") || "vs-cpu";
   const p1Id = searchParams.get("p1") || "whiskers";
   const p2Id = searchParams.get("p2") || "shadow";
+  const opponentName = searchParams.get("opponent") || "RIVAL ONLINE";
+  const usesAutomatedOpponent = mode === "vs-cpu" || mode === "ranked" || mode === "puzzle" || mode === "chaos";
+  const playerTwoLabel = mode === "ranked" ? opponentName : usesAutomatedOpponent ? "CPU" : "JUGADOR 2";
 
   const p1Character = characters.find((c) => c.id === p1Id) || characters[0];
   const p2Character = p2Id === "cpu" ? characters[1] : characters.find((c) => c.id === p2Id) || characters[1];
@@ -146,7 +149,7 @@ export function ResultScreen() {
               {winnerCharacter.name}
             </h2>
             <p className="text-white/80 text-2xl">
-              {winner === "player1" ? "JUGADOR 1" : mode === "vs-cpu" ? "CPU" : "JUGADOR 2"}
+              {winner === "player1" ? "JUGADOR 1" : playerTwoLabel}
             </p>
           </motion.div>
 
@@ -230,7 +233,19 @@ export function ResultScreen() {
             transition={{ delay: 1.2 }}
           >
             <ActionButton
-              onClick={() => navigate(`/game?mode=${mode}&p1=${p1Id}&p2=${p2Id}`)}
+              onClick={() => {
+                const params = new URLSearchParams({
+                  mode,
+                  p1: p1Id,
+                  p2: p2Id,
+                });
+
+                if (mode === "ranked") {
+                  params.set("opponent", opponentName);
+                }
+
+                navigate(`/game?${params.toString()}`);
+              }}
               icon={<RotateCcw />}
               label="REVANCHA"
               color="from-green-500 to-emerald-500"

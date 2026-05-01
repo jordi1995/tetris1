@@ -8,56 +8,59 @@ interface HoldSlotProps {
 
 export function HoldSlot({ piece, canHold }: HoldSlotProps) {
   return (
-    <div className={`bg-gray-900/90 p-4 rounded-xl shadow-xl border-2 transition-all ${
-      canHold ? 'border-green-500' : 'border-gray-600'
-    }`}>
-      <h3 className="text-white font-black text-sm mb-3 text-center">
-        HOLD (C)
-      </h3>
-      
+    <div
+      className={`rounded-xl border-2 bg-gray-900/90 p-1.5 shadow-xl transition-all sm:p-3 ${
+        canHold ? "border-green-500" : "border-gray-600"
+      }`}
+    >
+      <h3 className="mb-1.5 text-center text-[10px] font-black text-white sm:mb-3 sm:text-xs">HOLD (C)</h3>
+
       <motion.div
-        className={`bg-gray-800 p-4 rounded-lg min-h-[80px] flex items-center justify-center ${
-          !canHold ? 'opacity-50' : ''
+        className={`flex min-h-[48px] items-center justify-center rounded-lg bg-gray-800 p-1.5 sm:min-h-[68px] sm:p-3 ${
+          !canHold ? "opacity-50" : ""
         }`}
-        animate={canHold ? {
-          boxShadow: ['0 0 0px rgba(34, 197, 94, 0.5)', '0 0 20px rgba(34, 197, 94, 0.5)', '0 0 0px rgba(34, 197, 94, 0.5)'],
-        } : {}}
-        transition={{ duration: 2, repeat: Infinity }}
+        animate={
+          canHold
+            ? {
+                boxShadow: [
+                  "0 0 0px rgba(34, 197, 94, 0.5)",
+                  "0 0 20px rgba(34, 197, 94, 0.5)",
+                  "0 0 0px rgba(34, 197, 94, 0.5)",
+                ],
+              }
+            : {}
+        }
+        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
       >
-        {piece ? (
-          <HoldPiece piece={piece} />
-        ) : (
-          <span className="text-gray-600 text-xs text-center">
-            Vacío
-          </span>
-        )}
+        {piece ? <HoldPiece piece={piece} /> : <span className="text-center text-[10px] text-gray-600 sm:text-xs">Vacio</span>}
       </motion.div>
-      
-      {!canHold && (
-        <p className="text-yellow-500 text-xs mt-2 text-center font-bold">
-          Ya usada
-        </p>
-      )}
+
+      {!canHold && <p className="mt-2 text-center text-[10px] font-bold text-yellow-500 sm:text-xs">Ya usada</p>}
     </div>
   );
 }
 
 function HoldPiece({ piece }: { piece: Piece }) {
   return (
-    <div className="grid gap-[2px]" style={{
-      gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)`,
-    }}>
+    <div
+      className="grid gap-[2px]"
+      style={{
+        gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)`,
+      }}
+    >
       {piece.shape.map((row, y) =>
         row.map((cell, x) => (
           <div
             key={`${x}-${y}`}
-            className="w-4 h-4 rounded-sm"
+            className="rounded-[2px]"
             style={{
-              backgroundColor: cell ? piece.color : 'transparent',
-              boxShadow: cell ? `0 0 6px ${piece.color}` : 'none',
+              width: "clamp(8px, 0.7vw + 0.3vh, 14px)",
+              height: "clamp(8px, 0.7vw + 0.3vh, 14px)",
+              backgroundColor: cell ? piece.color : "transparent",
+              boxShadow: cell ? `0 0 6px ${piece.color}` : "none",
             }}
           />
-        ))
+        )),
       )}
     </div>
   );

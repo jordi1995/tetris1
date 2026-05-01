@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { MainMenu } from "./screens/MainMenu";
 import { ModeSelection } from "./screens/ModeSelection";
 import { CharacterSelection } from "./screens/CharacterSelection";
+import { OnlineMatchmaking } from "./screens/OnlineMatchmaking";
 import { GameScreen } from "./screens/GameScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: "/character-selection",
     Component: CharacterSelection,
+  },
+  {
+    path: "/online-matchmaking",
+    Component: OnlineMatchmaking,
   },
   {
     path: "/game",
