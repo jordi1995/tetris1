@@ -8,6 +8,7 @@ import { powers } from "../data/powers";
 import { GameBoard } from "../components/game/GameBoard";
 import { HoldSlot } from "../components/game/HoldSlot";
 import { NextPieces } from "../components/game/NextPieces";
+import { getCpuAction } from "../utils/cpuLogic";
 import {
   createInitialPlayerState,
   tryMove,
@@ -55,7 +56,9 @@ export function GameScreen() {
 
   const gameLoopRef = useRef<number>();
   const lastDropTimeRef = useRef<{ player1: number; player2: number }>({ player1: 0, player2: 0 });
+  const lastCpuMoveTimeRef = useRef(0);
   const gameStartTimeRef = useRef<number>(Date.now());
+  const cpuMoveInterval = 140;
 
   const getDropSpeed = (level: number, effects: Effect[]) => {
     const hasSpeedUp = effects.some((effect) => effect.type === "speed_up");
@@ -201,12 +204,18 @@ export function GameScreen() {
         }
 
         const dropSpeed2 = getDropSpeed(gameState.player2.level, gameState.player2.effects);
-        if (timestamp - lastDropTimeRef.current.player2 > dropSpeed2) {
-          if (usesCpuOpponent) {
+        if (usesCpuOpponent) {
+          if (timestamp - lastCpuMoveTimeRef.current > cpuMoveInterval) {
             handleCPUMove();
-          } else {
-            handleAutoDrop("player2");
+            lastCpuMoveTimeRef.current = timestamp;
           }
+
+          if (timestamp - lastDropTimeRef.current.player2 > dropSpeed2) {
+            handleAutoDrop("player2");
+            lastDropTimeRef.current.player2 = timestamp;
+          }
+        } else if (timestamp - lastDropTimeRef.current.player2 > dropSpeed2) {
+          handleAutoDrop("player2");
           lastDropTimeRef.current.player2 = timestamp;
         }
       }
@@ -224,26 +233,33 @@ export function GameScreen() {
   }, [gameState, handleAutoDrop, usesCpuOpponent]);
 
   const handleCPUMove = useCallback(() => {
+    const player = gameState.player2;
+    if (!player.currentPiece || player.isGameOver) return;
+
+    const action = getCpuAction(player);
+
+    if (action === "drop") {
+      handleAutoDrop("player2");
+      return;
+    }
+
     setGameState((prev) => {
-      const player = prev.player2;
-      if (!player.currentPiece || player.isGameOver) return prev;
+      const currentPlayer = prev.player2;
+      if (!currentPlayer.currentPiece || currentPlayer.isGameOver) return prev;
 
-      const actions = [
-        () => tryMove(player, -1, 0),
-        () => tryMove(player, 1, 0),
-        () => tryRotate(player),
-        () => tryMove(player, 0, 1),
-      ];
-
-      const randomAction = actions[Math.floor(Math.random() * actions.length)];
-      const newState = randomAction();
+      const nextPlayer =
+        action === "left"
+          ? tryMove(currentPlayer, -1, 0)
+          : action === "right"
+            ? tryMove(currentPlayer, 1, 0)
+            : tryRotate(currentPlayer);
 
       return {
         ...prev,
-        player2: newState,
+        player2: nextPlayer,
       };
     });
-  }, []);
+  }, [gameState.player2, handleAutoDrop]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
