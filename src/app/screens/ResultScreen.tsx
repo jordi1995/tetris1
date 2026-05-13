@@ -14,13 +14,14 @@ export function ResultScreen() {
   const p1Id = searchParams.get("p1") || "whiskers";
   const p2Id = searchParams.get("p2") || "shadow";
   const opponentName = searchParams.get("opponent") || "RIVAL ONLINE";
-  const usesAutomatedOpponent = mode === "vs-cpu" || mode === "ranked" || mode === "puzzle" || mode === "chaos";
+  const isSinglePlayerResult = searchParams.get("single") === "true" || mode === "normal" || mode === "chaos";
+  const usesAutomatedOpponent = mode === "vs-cpu" || mode === "ranked" || mode === "puzzle";
   const playerTwoLabel = mode === "ranked" ? opponentName : usesAutomatedOpponent ? "CPU" : "JUGADOR 2";
 
   const p1Character = characters.find((c) => c.id === p1Id) || characters[0];
   const p2Character = p2Id === "cpu" ? characters[1] : characters.find((c) => c.id === p2Id) || characters[1];
 
-  const winnerCharacter = winner === "player1" ? p1Character : p2Character;
+  const winnerCharacter = isSinglePlayerResult ? p1Character : winner === "player1" ? p1Character : p2Character;
   const loserCharacter = winner === "player1" ? p2Character : p1Character;
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export function ResultScreen() {
               {winnerCharacter.name}
             </h2>
             <p className="text-white/80 text-2xl">
-              {winner === "player1" ? "JUGADOR 1" : playerTwoLabel}
+              {isSinglePlayerResult ? (mode === "chaos" ? "MODO CAOS" : "MODO NORMAL") : winner === "player1" ? "JUGADOR 1" : playerTwoLabel}
             </p>
           </motion.div>
 

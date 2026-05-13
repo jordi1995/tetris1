@@ -1,9 +1,9 @@
 import { type ReactNode } from "react";
 import { motion } from "motion/react";
 import { useNavigate, useSearchParams } from "react-router";
-import { ArrowLeft, Bot, Users, Trophy, Sparkles, Target, Heart } from "lucide-react";
+import { ArrowLeft, Bot, Gamepad2, Users, Trophy, Sparkles, Target, Heart } from "lucide-react";
 
-const QUICK_PLAY_MODE_IDS = new Set(["vs-cpu", "puzzle", "coop", "chaos"]);
+const QUICK_PLAY_MODE_IDS = new Set(["normal", "chaos", "vs-cpu", "puzzle", "coop"]);
 
 interface ModeData {
   id: string;
@@ -22,6 +22,14 @@ interface ModeCardProps {
 }
 
 const ALL_MODES: ModeData[] = [
+  {
+    id: "normal",
+    name: "Modo Normal",
+    description: "Tetris clasico en solitario: sobrevive y suma puntos.",
+    icon: <Gamepad2 className="h-10 w-10 sm:h-12 sm:w-12" />,
+    color: "from-cyan-500 to-blue-500",
+    difficulty: "Clasico",
+  },
   {
     id: "vs-cpu",
     name: "VS CPU",

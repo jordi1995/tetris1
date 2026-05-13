@@ -53,6 +53,23 @@ const PIECE_SHAPES: Record<PieceType, number[][]> = {
     [0, 1, 0],
     [1, 1, 1],
   ],
+  CHAOS_GIANT: [
+    [0, 1, 0],
+    [1, 1, 1],
+    [0, 1, 0],
+  ],
+  CHAOS_MINI: [[1]],
+  CHAOS_CAT: [
+    [1, 0, 1],
+    [1, 1, 1],
+    [0, 1, 0],
+  ],
+  CHAOS_LONG: [[1, 1, 1, 1, 1, 1]],
+  CHAOS_HOLLOW: [
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+  ],
 };
 
 const PIECE_COLORS: Record<PieceType, string> = {
@@ -67,6 +84,11 @@ const PIECE_COLORS: Record<PieceType, string> = {
   SCRATCH: '#E040FB',
   SLEEP_CAT: '#7C4DFF',
   LUCKY_CAT: '#FFD700',
+  CHAOS_GIANT: '#FB7185',
+  CHAOS_MINI: '#FDE047',
+  CHAOS_CAT: '#38BDF8',
+  CHAOS_LONG: '#22C55E',
+  CHAOS_HOLLOW: '#F97316',
 };
 
 export function createPiece(type: PieceType): Piece {
@@ -82,8 +104,13 @@ export function createPiece(type: PieceType): Piece {
 export function getRandomPieceType(includeSpecial: boolean = false): PieceType {
   const basicTypes: PieceType[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
   const specialTypes: PieceType[] = ['CAT_BOMB', 'SCRATCH', 'SLEEP_CAT', 'LUCKY_CAT'];
+  const chaosTypes: PieceType[] = ['CHAOS_GIANT', 'CHAOS_MINI', 'CHAOS_CAT', 'CHAOS_LONG', 'CHAOS_HOLLOW'];
   
-  if (includeSpecial && Math.random() < 0.15) {
+  if (includeSpecial && Math.random() < 0.1) {
+    return chaosTypes[Math.floor(Math.random() * chaosTypes.length)];
+  }
+
+  if (includeSpecial && Math.random() < 0.12) {
     return specialTypes[Math.floor(Math.random() * specialTypes.length)];
   }
   
@@ -92,6 +119,7 @@ export function getRandomPieceType(includeSpecial: boolean = false): PieceType {
 
 export function rotatePiece(piece: Piece, clockwise: boolean = true): Piece {
   if (piece.type === 'O') return piece; // O no rota
+  if (['CHAOS_MINI', 'CHAOS_CAT', 'CHAOS_LONG', 'CHAOS_HOLLOW'].includes(piece.type)) return piece;
   
   const newShape = piece.shape.map((row, i) =>
     row.map((_, j) => {
@@ -133,6 +161,11 @@ export function getPieceIcon(type: PieceType): string {
     SCRATCH: '🔪',
     SLEEP_CAT: '😴',
     LUCKY_CAT: '🍀',
+    CHAOS_GIANT: '✚',
+    CHAOS_MINI: '•',
+    CHAOS_CAT: '🐱',
+    CHAOS_LONG: '━',
+    CHAOS_HOLLOW: '□',
   };
   return icons[type];
 }

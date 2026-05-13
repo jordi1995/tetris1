@@ -175,27 +175,30 @@ function BoardCell({ cell, size }: CellProps) {
   }
 
   return (
-    <motion.div
-      className="relative overflow-hidden shadow-md"
-      style={{ ...baseCellStyle, backgroundColor: cell.color }}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 0.1 }}
-    >
+    <div className="relative overflow-hidden shadow-md" style={{ ...baseCellStyle, backgroundColor: cell.color }}>
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/20" />
 
-      {size !== "mini" && cell.type && ["CAT_BOMB", "SCRATCH", "SLEEP_CAT", "LUCKY_CAT"].includes(cell.type) && (
+      {size !== "mini" &&
+        cell.type &&
+        ["CAT_BOMB", "SCRATCH", "SLEEP_CAT", "LUCKY_CAT", "CHAOS_GIANT", "CHAOS_MINI", "CHAOS_CAT", "CHAOS_LONG", "CHAOS_HOLLOW"].includes(
+          cell.type,
+        ) && (
         <div className={`absolute inset-0 flex items-center justify-center ${sizeStyle.iconClass}`}>
           {cell.type === "CAT_BOMB" && "💣"}
           {cell.type === "SCRATCH" && "✂️"}
           {cell.type === "SLEEP_CAT" && "😴"}
           {cell.type === "LUCKY_CAT" && "🍀"}
+          {cell.type === "CHAOS_GIANT" && "✚"}
+          {cell.type === "CHAOS_MINI" && "•"}
+          {cell.type === "CHAOS_CAT" && "🐱"}
+          {cell.type === "CHAOS_LONG" && "━"}
+          {cell.type === "CHAOS_HOLLOW" && "□"}
         </div>
       )}
 
       {cell.isGarbage && (
         <div className={`absolute inset-0 flex items-center justify-center ${sizeStyle.iconClass}`}>⚠️</div>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useNavigate, useSearchParams } from "react-router";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Info, X } from "lucide-react";
 import { characters } from "../data/characters";
+import { getCharacterBattleProfile, getCpuProfile, getPowersForCharacter } from "../data/characterPowers";
 import { Character } from "../types/game";
 
 interface CharacterGridProps {
@@ -11,6 +12,8 @@ interface CharacterGridProps {
   onSelect: (character: Character) => void;
   excludeCharacter: Character | null;
   compact?: boolean;
+  showCpuLevel?: boolean;
+  onInfo: (character: Character) => void;
 }
 
 export function CharacterSelection() {
@@ -23,8 +26,11 @@ export function CharacterSelection() {
   const [player1Character, setPlayer1Character] = useState<Character | null>(null);
   const [player2Character, setPlayer2Character] = useState<Character | null>(null);
   const [activePicker, setActivePicker] = useState<1 | 2>(1);
+  const [infoCharacter, setInfoCharacter] = useState<Character | null>(null);
 
   const needsTwoPlayers = mode === "vs-player" || mode === "coop";
+  const needsCpuOpponent = mode === "vs-cpu";
+  const needsSecondCharacter = needsTwoPlayers || needsCpuOpponent;
   const backTarget =
     from === "home-local"
       ? "/"
@@ -36,12 +42,12 @@ export function CharacterSelection() {
 
   const handleStart = () => {
     if (!player1Character) return;
-    if (needsTwoPlayers && !player2Character) return;
+    if (needsSecondCharacter && !player2Character) return;
 
     const params = new URLSearchParams({
       mode,
       p1: player1Character.id,
-      p2: needsTwoPlayers ? player2Character!.id : "cpu",
+      p2: needsSecondCharacter ? player2Character!.id : "cpu",
     });
 
     if (opponent) {
@@ -53,7 +59,7 @@ export function CharacterSelection() {
 
   const handleSelectPlayer1 = (character: Character) => {
     setPlayer1Character(character);
-    if (needsTwoPlayers && !player2Character) {
+    if (needsSecondCharacter && !player2Character) {
       setActivePicker(2);
     }
   };
@@ -85,34 +91,36 @@ export function CharacterSelection() {
               Seleccion de personaje
             </p>
             <h1 className="mt-1 text-xl font-black text-white sm:text-4xl lg:text-5xl">
-              {needsTwoPlayers ? "ELIGE A TUS GATOS" : "ELIGE TU GATO"}
+              {needsSecondCharacter ? "ELIGE A TUS GATOS" : "ELIGE TU GATO"}
             </h1>
             <p className="mt-1 text-[10px] text-white/75 sm:text-sm">
               {mode === "ranked" && opponent
                 ? `Rival encontrado: ${opponent}`
-                : needsTwoPlayers
-                  ? "Seleccion rapida sin scroll para ambos jugadores."
-                  : "Todo entra en pantalla para empezar al instante."}
+                : needsCpuOpponent
+                  ? "Selecciona tu gato y el rival CPU que marcara el nivel."
+                  : needsTwoPlayers
+                    ? "Seleccion rapida sin scroll para ambos jugadores."
+                    : "Todo entra en pantalla para empezar al instante."}
             </p>
           </div>
 
           <div className="hidden min-w-[96px] justify-self-end rounded-full border border-white/15 bg-white/10 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-white/80 sm:block">
-            {needsTwoPlayers ? "Versus local" : "Ready"}
+            {needsCpuOpponent ? "VS CPU" : needsTwoPlayers ? "Versus local" : "Ready"}
           </div>
         </motion.div>
 
         <div className="flex min-h-0 flex-1 flex-col pb-16 pt-3 sm:pb-0 sm:pt-5">
-          {needsTwoPlayers && (
+          {needsSecondCharacter && (
             <div className="mb-2 flex flex-none justify-center xl:hidden">
               <div className="inline-flex rounded-full border border-white/15 bg-black/15 p-1 backdrop-blur-sm">
                 <PickerTab
-                  label="Jugador 1"
+                  label={needsCpuOpponent ? "Tu gato" : "Jugador 1"}
                   isActive={activePicker === 1}
                   isReady={Boolean(player1Character)}
                   onClick={() => setActivePicker(1)}
                 />
                 <PickerTab
-                  label="Jugador 2"
+                  label={needsCpuOpponent ? "CPU" : "Jugador 2"}
                   isActive={activePicker === 2}
                   isReady={Boolean(player2Character)}
                   onClick={() => setActivePicker(2)}
@@ -121,7 +129,7 @@ export function CharacterSelection() {
             </div>
           )}
 
-          {!needsTwoPlayers && (
+          {!needsSecondCharacter && (
             <div className="min-h-0 flex-1">
               <SinglePicker
                 title="Tu gato"
@@ -129,44 +137,51 @@ export function CharacterSelection() {
                 onSelect={handleSelectPlayer1}
                 excludeCharacter={player2Character}
                 compact={false}
+                onInfo={setInfoCharacter}
               />
             </div>
           )}
 
-          {needsTwoPlayers && (
+          {needsSecondCharacter && (
             <>
               <div className="min-h-0 flex-1 xl:hidden">
                 {activePicker === 1 ? (
                   <SinglePicker
-                    title="Jugador 1"
+                    title={needsCpuOpponent ? "Tu gato" : "Jugador 1"}
                     selectedCharacter={player1Character}
                     onSelect={handleSelectPlayer1}
                     excludeCharacter={player2Character}
                     compact
+                    onInfo={setInfoCharacter}
                   />
                 ) : (
                   <SinglePicker
-                    title="Jugador 2"
+                    title={needsCpuOpponent ? "Rival CPU / Nivel" : "Jugador 2"}
                     selectedCharacter={player2Character}
                     onSelect={handleSelectPlayer2}
                     excludeCharacter={player1Character}
                     compact
+                    showCpuLevel={needsCpuOpponent}
+                    onInfo={setInfoCharacter}
                   />
                 )}
               </div>
 
               <div className="hidden min-h-0 flex-1 xl:grid xl:grid-cols-2 xl:gap-6">
                 <SinglePicker
-                  title="Jugador 1"
+                  title={needsCpuOpponent ? "Tu gato" : "Jugador 1"}
                   selectedCharacter={player1Character}
                   onSelect={handleSelectPlayer1}
                   excludeCharacter={player2Character}
+                  onInfo={setInfoCharacter}
                 />
                 <SinglePicker
-                  title="Jugador 2"
+                  title={needsCpuOpponent ? "Rival CPU / Nivel" : "Jugador 2"}
                   selectedCharacter={player2Character}
                   onSelect={handleSelectPlayer2}
                   excludeCharacter={player1Character}
+                  showCpuLevel={needsCpuOpponent}
+                  onInfo={setInfoCharacter}
                 />
               </div>
             </>
@@ -179,31 +194,36 @@ export function CharacterSelection() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.25 }}
         >
-          {needsTwoPlayers && (
+          {needsSecondCharacter && (
             <div className="hidden rounded-2xl border border-white/15 bg-black/15 px-4 py-3 text-xs font-medium text-white/70 backdrop-blur-sm sm:block">
-              P1: {player1Character?.name ?? "Sin elegir"} · P2: {player2Character?.name ?? "Sin elegir"}
+              {needsCpuOpponent ? "Jugador" : "P1"}: {player1Character?.name ?? "Sin elegir"} /{" "}
+              {needsCpuOpponent ? "CPU" : "P2"}: {player2Character?.name ?? "Sin elegir"}
             </div>
           )}
 
           <button
             onClick={handleStart}
-            disabled={!player1Character || (needsTwoPlayers && !player2Character)}
+            disabled={!player1Character || (needsSecondCharacter && !player2Character)}
             className={`rounded-2xl px-5 py-3 text-sm font-black transition-all sm:px-10 sm:py-4 sm:text-xl ${
-              player1Character && (!needsTwoPlayers || player2Character)
+              player1Character && (!needsSecondCharacter || player2Character)
                 ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-2xl hover:scale-[1.02]"
                 : "cursor-not-allowed bg-gray-500 text-gray-200"
             }`}
           >
-            {player1Character && (!needsTwoPlayers || player2Character)
+            {player1Character && (!needsSecondCharacter || player2Character)
               ? mode === "ranked"
                 ? "ENTRAR EN PARTIDA"
                 : "COMENZAR BATALLA"
-              : needsTwoPlayers
-                ? "Selecciona ambos gatos"
+              : needsSecondCharacter
+                ? needsCpuOpponent
+                  ? "Selecciona tu gato y CPU"
+                  : "Selecciona ambos gatos"
                 : "Selecciona tu gato"}
           </button>
         </motion.div>
       </div>
+
+      {infoCharacter && <CharacterInfoModal character={infoCharacter} onClose={() => setInfoCharacter(null)} />}
     </div>
   );
 }
@@ -238,12 +258,16 @@ function SinglePicker({
   onSelect,
   excludeCharacter,
   compact = false,
+  showCpuLevel = false,
+  onInfo,
 }: {
   title: string;
   selectedCharacter: Character | null;
   onSelect: (character: Character) => void;
   excludeCharacter: Character | null;
   compact?: boolean;
+  showCpuLevel?: boolean;
+  onInfo: (character: Character) => void;
 }) {
   return (
     <div className={`flex h-full min-h-0 flex-col rounded-[28px] border border-white/12 bg-black/12 backdrop-blur-sm ${compact ? "p-2 sm:p-4" : "p-3 sm:p-4"}`}>
@@ -269,30 +293,49 @@ function SinglePicker({
           onSelect={onSelect}
           excludeCharacter={excludeCharacter}
           compact={compact}
+          showCpuLevel={showCpuLevel}
+          onInfo={onInfo}
         />
       </div>
     </div>
   );
 }
 
-function CharacterGrid({ characters, selectedCharacter, onSelect, excludeCharacter, compact = false }: CharacterGridProps) {
+function CharacterGrid({
+  characters,
+  selectedCharacter,
+  onSelect,
+  excludeCharacter,
+  compact = false,
+  showCpuLevel = false,
+  onInfo,
+}: CharacterGridProps) {
   return (
     <div
       className={`grid h-full grid-cols-2 ${
-        compact ? "content-start auto-rows-[96px] gap-2" : "auto-rows-fr gap-3"
+        compact ? "content-start auto-rows-[minmax(126px,1fr)] gap-2" : "auto-rows-fr gap-3"
       } lg:grid-cols-3`}
     >
       {characters.map((character, index) => {
         const isSelected = selectedCharacter?.id === character.id;
         const isExcluded = excludeCharacter?.id === character.id;
+        const cpuProfile = getCpuProfile(character.id);
 
         return (
-          <motion.button
+          <motion.div
             key={character.id}
             onClick={() => !isExcluded && onSelect(character)}
-            disabled={isExcluded}
+            onKeyDown={(event) => {
+              if (!isExcluded && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                onSelect(character);
+              }
+            }}
+            role="button"
+            tabIndex={isExcluded ? -1 : 0}
+            aria-disabled={isExcluded}
             className={`relative flex min-h-0 min-w-0 flex-col justify-between overflow-hidden rounded-[24px] border text-left transition-all ${
-              compact ? "h-[96px] p-2 sm:h-auto sm:p-4" : "h-full p-3 sm:p-4"
+              compact ? "min-h-[126px] p-2 sm:min-h-0 sm:p-4" : "h-full p-3 sm:p-4"
             } ${
               isExcluded
                 ? "cursor-not-allowed border-white/10 bg-gray-700/50 opacity-40"
@@ -318,22 +361,122 @@ function CharacterGrid({ characters, selectedCharacter, onSelect, excludeCharact
               </motion.div>
             )}
 
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onInfo(character);
+              }}
+              className="absolute right-2 top-2 z-10 rounded-full border border-slate-900/10 bg-white/85 p-1.5 text-slate-800 shadow-sm transition-colors hover:bg-white"
+              aria-label={`Ver habilidades de ${character.name}`}
+            >
+              <Info className="h-3.5 w-3.5" />
+            </button>
+
+            {showCpuLevel && (
+              <div className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white">
+                {cpuProfile.label}
+              </div>
+            )}
+
             <div>
               <div className={`mb-1 ${compact ? "text-2xl sm:text-5xl" : "text-5xl sm:text-6xl"}`}>{character.emoji}</div>
               <h3 className={`${compact ? "text-xs sm:text-lg" : "text-base sm:text-lg"} font-black`} style={{ color: character.color }}>
                 {character.name}
               </h3>
-              <p className={`mt-1 leading-snug text-slate-600 ${compact ? "hidden text-[10px] sm:block sm:text-[11px]" : "text-[10px] sm:text-[11px]"}`}>
+              <p className={`mt-1 leading-snug text-slate-600 ${compact ? "line-clamp-2 text-[10px] sm:text-[11px]" : "text-[10px] sm:text-[11px]"}`}>
                 {character.description}
+              </p>
+              <p className={`mt-1 font-bold uppercase tracking-[0.12em] text-slate-500 ${compact ? "text-[8px]" : "text-[9px]"}`}>
+                {getCharacterBattleProfile(character.id).style}
               </p>
             </div>
 
             <div className={compact ? "mt-1.5" : "mt-3"}>
               <div className="h-2 rounded-full" style={{ backgroundColor: character.color }} />
             </div>
-          </motion.button>
+          </motion.div>
         );
       })}
     </div>
+  );
+}
+
+function CharacterInfoModal({ character, onClose }: { character: Character; onClose: () => void }) {
+  const battleProfile = getCharacterBattleProfile(character.id);
+  const characterPowers = getPowersForCharacter(character.id);
+  const cpuProfile = getCpuProfile(character.id);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/72 px-3 py-4 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      onClick={onClose}
+    >
+      <motion.section
+        className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-white/18 bg-white p-4 text-slate-900 shadow-2xl sm:p-5"
+        initial={{ scale: 0.94, y: 18 }}
+        animate={{ scale: 1, y: 0 }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-slate-100 text-4xl">
+              {character.emoji}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{battleProfile.style}</p>
+              <h2 className="truncate text-2xl font-black" style={{ color: character.color }}>
+                {character.name}
+              </h2>
+              <p className="mt-1 text-xs font-semibold text-slate-600">{character.description}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-slate-100 p-2 text-slate-700 transition-colors hover:bg-slate-200"
+            aria-label="Cerrar informacion"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-slate-100 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Caracteristica especial</p>
+          <p className="mt-1 text-sm font-semibold leading-snug text-slate-800">{battleProfile.special}</p>
+        </div>
+
+        <div className="mt-4 grid gap-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">3 poderes</p>
+          {characterPowers.map((power) => (
+            <div key={power.id} className="grid grid-cols-[36px_minmax(0,1fr)] gap-2 rounded-2xl border border-slate-200 bg-white p-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-lg">{power.icon}</div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900">{power.name}</h3>
+                <p className="text-xs font-medium leading-snug text-slate-600">{power.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {battleProfile.strengths.map((strength) => (
+            <div
+              key={strength}
+              className="rounded-2xl bg-slate-900 px-2 py-2 text-center text-[10px] font-black uppercase tracking-[0.08em] text-white"
+            >
+              {strength}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-200 p-3 text-xs font-semibold text-slate-600">
+          Nivel CPU: <span className="font-black text-slate-900">{cpuProfile.label}</span>
+        </div>
+      </motion.section>
+    </motion.div>
   );
 }

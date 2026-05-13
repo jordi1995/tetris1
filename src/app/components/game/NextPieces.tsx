@@ -3,9 +3,10 @@ import { Piece } from "../../types/game";
 
 interface NextPiecesProps {
   pieces: Piece[];
+  hidden?: boolean;
 }
 
-export function NextPieces({ pieces }: NextPiecesProps) {
+export function NextPieces({ pieces, hidden = false }: NextPiecesProps) {
   return (
     <div className="rounded-xl border-2 border-purple-500 bg-gray-900/90 p-1.5 shadow-xl sm:p-3">
       <h3 className="mb-1.5 text-center font-black text-white sm:mb-3 sm:text-xs">
@@ -18,7 +19,11 @@ export function NextPieces({ pieces }: NextPiecesProps) {
       </h3>
 
       <div className="space-y-1 sm:space-y-2">
-        {pieces.slice(0, 5).map((piece, index) => (
+        {hidden ? (
+          <div className="flex min-h-[142px] items-center justify-center rounded-lg bg-gray-800 p-2 text-2xl font-black text-purple-200 sm:min-h-[210px]">
+            ???
+          </div>
+        ) : pieces.slice(0, 5).map((piece, index) => (
           <motion.div
             key={index}
             className="rounded-lg bg-gray-800 p-1 sm:p-2"

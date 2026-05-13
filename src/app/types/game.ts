@@ -1,5 +1,21 @@
 // Tipos de piezas
-export type PieceType = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L' | 'CAT_BOMB' | 'SCRATCH' | 'SLEEP_CAT' | 'LUCKY_CAT';
+export type PieceType =
+  | 'I'
+  | 'O'
+  | 'T'
+  | 'S'
+  | 'Z'
+  | 'J'
+  | 'L'
+  | 'CAT_BOMB'
+  | 'SCRATCH'
+  | 'SLEEP_CAT'
+  | 'LUCKY_CAT'
+  | 'CHAOS_GIANT'
+  | 'CHAOS_MINI'
+  | 'CHAOS_CAT'
+  | 'CHAOS_LONG'
+  | 'CHAOS_HOLLOW';
 
 export interface Position {
   x: number;
@@ -21,7 +37,7 @@ export interface Cell {
   isGarbage?: boolean;
 }
 
-export type GameMode = 'vs-cpu' | 'vs-player' | 'ranked' | 'chaos' | 'coop' | 'puzzle';
+export type GameMode = 'normal' | 'vs-cpu' | 'vs-player' | 'ranked' | 'chaos' | 'coop' | 'puzzle';
 
 export interface Character {
   id: string;

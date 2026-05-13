@@ -13,10 +13,10 @@ export function createEmptyBoard(): Cell[][] {
   );
 }
 
-export function createInitialPlayerState(character: any): PlayerState {
-  const nextPieces = Array(5).fill(null).map(() => createPiece(getRandomPieceType()));
+export function createInitialPlayerState(character: any, includeChaosPieces: boolean = false): PlayerState {
+  const nextPieces = Array(5).fill(null).map(() => createPiece(getRandomPieceType(includeChaosPieces)));
   const currentPiece = nextPieces.shift()!;
-  nextPieces.push(createPiece(getRandomPieceType()));
+  nextPieces.push(createPiece(getRandomPieceType(includeChaosPieces)));
   
   return {
     board: createEmptyBoard(),
@@ -212,7 +212,7 @@ export function hardDrop(state: PlayerState): PlayerState {
   };
 }
 
-export function holdPieceAction(state: PlayerState): PlayerState {
+export function holdPieceAction(state: PlayerState, includeChaosPieces: boolean = false): PlayerState {
   if (!state.canHold || !state.currentPiece) return state;
   
   let newCurrentPiece: Piece;
@@ -221,11 +221,13 @@ export function holdPieceAction(state: PlayerState): PlayerState {
   if (state.holdPiece) {
     newCurrentPiece = { ...state.holdPiece, position: { x: 3, y: 0 }, rotation: 0 };
     newHoldPiece = { ...state.currentPiece, position: { x: 3, y: 0 }, rotation: 0 };
+    if (!isValidPosition(state.board, newCurrentPiece)) return state;
   } else {
     newHoldPiece = { ...state.currentPiece, position: { x: 3, y: 0 }, rotation: 0 };
     const nextPieces = [...state.nextPieces];
-    newCurrentPiece = nextPieces.shift()!;
-    nextPieces.push(createPiece(getRandomPieceType()));
+    newCurrentPiece = { ...nextPieces.shift()!, position: { x: 3, y: 0 }, rotation: 0 };
+    if (!isValidPosition(state.board, newCurrentPiece)) return state;
+    nextPieces.push(createPiece(getRandomPieceType(includeChaosPieces)));
     
     return {
       ...state,
